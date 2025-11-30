@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Cipher AES + Steganografi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Block Cipher</h1>
+            <p>Mata Kuliah Keamanan Jaringan</p>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('crypto')">Kriptografi</button>
+            <button class="tab-btn" onclick="switchTab('stego')">Citra hasil Penyembunyian Pesan</button>
+        </div>
+        <div class="content">
+            <div id="cryptoTab" class="tab-content active">
+                <div class="form-group">
+                    <label>Enkripsi</label>
+                    <input type="text" id="cryptoKey" placeholder="Masukkan kunci enkripsi" value="MySecretKey2024">
+                </div>
+                <div class="form-group">
+                    <label>Mode Operasi Block Cipher</label>
+                    <div class="cipher-mode">
+                        <div class="radio-group">
+                            <input type="radio" id="ecb" name="cipherMode" value="ECB">
+                            <label for="ecb">ECB</label>
+                        </div>
+                        <div class="radio-group">
+                            <input type="radio" id="cbc" name="cipherMode" value="CBC" checked>
+                            <label for="cbc">CBC</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Plaintext (Teks Asli)</label>
+                    <textarea id="plaintext" placeholder="Masukkan teks yang akan dienkripsi...">Ini adalah pesan rahasia untuk tugas kriptografi block cipher</textarea>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="encryptAndDecrypt()">Enkripsi & Dekripsi</button>
+                    <button class="btn btn-secondary" onclick="clearCrypto()">Bersihkan</button>
+                </div>
+                <div id="cryptoComparison" class="comparison-container">
+                    <div class="comparison-box">
+                        <h3>Input Plaintext</h3>
+                        <div class="comparison-content" id="displayPlaintext"></div>
+                        <div class="info-stats" id="plaintextStats"></div>
+                        <button class="copy-btn" onclick="copyText('displayPlaintext')">Salin</button>
+                    </div>
+                    <div class="comparison-box">
+                        <h3>Hasil Enkripsi</h3>
+                        <div class="comparison-content" id="displayCiphertext"></div>
+                        <div class="info-stats" id="ciphertextStats"></div>
+                        <button class="copy-btn" onclick="copyText('displayCiphertext')">Salin</button>
+                    </div>
+                    <div class="comparison-box" style="grid-column: 1 / -1;">
+                        <h3>Hasil Dekripsi</h3>
+                        <div class="comparison-content" id="displayDecrypted"></div>
+                        <div class="info-stats" id="decryptedStats"></div>
+                        <button class="copy-btn" onclick="copyText('displayDecrypted')">Salin</button>
+                    </div>
+                </div>
+                <div id="cryptoProcess" class="process-flow">
+                    <h4 style="color: #f57c00; margin-bottom: 10px;">Proses Kriptografi:</h4>
+                    <div class="process-step">Plaintext dienkripsi menggunakan algoritma Blockchiper dengan kunci yang diberikan</div>
+                    <div class="process-step">Hasil enkripsi menghasilkan Ciphertext yang tidak dapat dibaca</div>
+                    <div class="process-step">Ciphertext didekripsi menggunakan kunci yang sama</div>
+                    <div class="process-step">Hasil dekripsi mengembalikan Plaintext asli</div>
+                </div>
+            </div>
+            <div id="stegoTab" class="tab-content">
+                <h3 style="margin-bottom: 20px; color: #667eea;">Penyembunyian Pesan</h3>
+
+                <div class="form-group">
+                    <label>Upload Gambar (PNG/JPG)</label>
+                    <input type="file" id="imageInput" accept="image/*" onchange="loadImage()">
+                </div>
+                <div class="form-group">
+                    <label>Pesan Rahasia yang Akan Disembunyikan</label>
+                    <textarea id="secretMessage" placeholder="Masukkan pesan yang akan disembunyikan dalam gambar...">Pesan rahasia ini tersembunyi dalam gambar</textarea>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="hideMessage()">Sembunyikan Pesan</button>
+                    <button class="btn btn-primary" onclick="extractMessage()">Ekstrak Pesan</button>
+                    <button class="btn btn-secondary" onclick="clearStego()">Bersihkan</button>
+                </div>
+                <div id="stegoComparison" class="image-comparison">
+                    <div class="image-box">
+                        <h3>Gambar Asli</h3>
+                        <canvas id="originalCanvas"></canvas>
+                        <div class="info-stats" id="originalStats"></div>
+                    </div>
+                    <div class="image-box">
+                        <h3>Gambar Setelah Penyembunyian</h3>
+                        <canvas id="stegoCanvas"></canvas>
+                        <div class="info-stats" id="stegoStats"></div>
+                        <button class="download-btn" onclick="downloadStegoImage()">Download Gambar</button>
+                    </div>
+                </div>
+                <div id="extractedMessage" class="comparison-container">
+                    <div class="comparison-box" style="grid-column: 1 / -1;">
+                        <h3>Pesan yang Berhasil Diekstrak</h3>
+                        <div class="comparison-content" id="extractedText"></div>
+                        <button class="copy-btn" onclick="copyText('extractedText')">Salin</button>
+                    </div>
+                </div>
+                <div id="stegoProcess" class="process-flow">
+                    <h4 style="color: #f57c00; margin-bottom: 10px;">Proses Penyembunyian Pesan</h4>
+                    <div class="process-step">Pesan rahasia dikonversi menjadi format biner</div>
+                    <div class="process-step">Setiap bit pesan disimpan di LSB (Least Significant Bit) pixel gambar</div>
+                    <div class="process-step">Gambar hasil terlihat asli dengan mata telanjang</div>
+                    <div class="process-step">Proses ekstraksi membaca  setiap pixel untuk mengambil pesan kembali</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="fungsi.js"></script>
+</body>
+
+</html>
